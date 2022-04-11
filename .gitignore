@@ -1,0 +1,14 @@
+*.pyc
+
+*.o
+*.so
+*.dll
+*.project
+*.cubin
+*.pydevproject
+
+.settings
+.pytest_cache
+__pycache__/
+*.DS_Store
+.idea
