@@ -36,34 +36,11 @@ def use_numpy(num_elems: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     dt = np.arange(num_elems).astype(dtype=np.float64)
     dE = np.arange(num_elems).astype(dtype=np.float64)
     idx = np.arange(num_elems, dtype=np.int32)
-    print(f'dt original avg: {np.mean(dt[:])}')
-    print(f'dE original avg: {np.mean(dE[:])}')
-    print(f'id original avg: {np.mean(idx[:])}')
+    # print(f'dt original avg: {np.mean(dt[:])}')
+    # print(f'dE original avg: {np.mean(dE[:])}')
+    # print(f'id original avg: {np.mean(idx[:])}')
     return dt, dE, idx
 
-
-# @profile
-# def use_h5py(num_elems: int, chunk_size: int = 1000000, compression: int = 4):
-#     fname = f'test-elems{total_elems}-chunk{chunk_size}-compression{compression}.hdf5'
-#     with h5py.File(fname, 'w') as file:
-#         dt_dset = file.create_dataset("dt", num_elems, dtype=np.float64, chunks=chunk_size, compression='gzip',
-#                                       compression_opts=compression)
-#         dE_dset = file.create_dataset("dE", num_elems, dtype=np.float64, chunks=chunk_size, compression='gzip',
-#                                       compression_opts=compression)
-#         id_dset = file.create_dataset("id", num_elems, dtype=np.int32, chunks=chunk_size, compression='gzip',
-#                                       compression_opts=compression)
-#
-#         idx = 0
-#         while idx < num_elems:
-#             write_elems = min(chunk_size, num_elems - idx)
-#             dt_dset[idx:idx + write_elems] = np.arange(idx, idx + write_elems).astype(dtype=np.float64)
-#             dE_dset[idx:idx + write_elems] = np.arange(idx, idx + write_elems).astype(dtype=np.float64)
-#             id_dset[idx:idx + write_elems] = np.arange(idx, idx + write_elems).astype(dtype=np.int32)
-#             idx += chunk_size
-#         print(f'dt original avg: {np.mean(dt_dset[:])}')
-#         print(f'dE original avg: {np.mean(dE_dset[:])}')
-#         print(f'id original avg: {np.mean(id_dset[:])}')
-#     return fname, dt_dset, dE_dset, id_dset
 
 # @profile
 def generate_scatter_data(comm, total_elems, args):

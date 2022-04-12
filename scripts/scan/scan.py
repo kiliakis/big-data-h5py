@@ -9,211 +9,127 @@ import numpy as np
 from time import sleep
 import common
 
+job_name_form = '_mem{memory}_gzip{gzip}_chunk{chunk}_wpn{wpn}_N{nodes}_mpi{mpi}_'
+
 this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 this_filename = sys.argv[0].split('/')[-1]
 
-parser = argparse.ArgumentParser(description='Run locally the MPI experiments.',
-                                 usage='python {} -t lhc sps ps'.format(this_filename[:-3]))
+parser = argparse.ArgumentParser(description='Run MPI experiments.',
+                                 usage='python {} -t numpy h5py'.format(this_filename[:-3]))
 
-parser.add_argument('-e', '--environment', type=str, default='local', choices=['local', 'slurm', 'condor', 'evolve', 'cloud'],
+parser.add_argument('-e', '--environment', type=str, default='slurm', choices=['slurm'],
                     help='The environment to run the scan.')
 
-parser.add_argument('-t', '--testcases', type=str, default=['lhc,sps,ps'],
+parser.add_argument('-t', '--testcases', type=str, nargs='+', choices=['h5py', 'numpy'],
                     help='Which testcases to run. Default: all')
 
-parser.add_argument('-o', '--output', type=str, default='./results/local',
-                    help='Output directory to store the output data. Default: ./results/local')
+parser.add_argument('-o', '--output', type=str, default='./results/raw',
+                    help='Output directory to store the output data. Default: ./results/raw')
 
 parser.add_argument('-l', '--limit', type=int, default=0,
                     help='Limit the number of concurrent jobs queueing. Default: 0 (No Limit)')
 
-
 if __name__ == '__main__':
     args = parser.parse_args()
     top_result_dir = args.output
-    os.environ['BLONDHOME'] = common.blond_home
+    # os.environ['HOME'] = common.home
     # os.environ['FFTWDIR'] = os.environ.get('FFTWDIR', '$HOME/install')
     # os.environ['HOME'] =
     for tc in args.testcases.split(','):
         yc = yaml.load(open(this_directory + '/{}_configs.yml'.format(tc), 'r'),
                        Loader=yaml.FullLoader)[args.environment]
 
-        result_dir = top_result_dir + '/{}/{}/{}/{}/{}'
-
-        job_name_form = '_p{}_b{}_s{}_t{}_w{}_o{}_N{}_red{}_mtw{}_seed{}_approx{}_mpi{}_lb{}_monitor{}_tp{}_prec{}_artdel{}_gpu{}_partition_{}'
+        result_dir = top_result_dir + '/{exe}/{config_name}/{job_name}/{timestr}/{fname}'
 
         total_sims = 0
+        # Calculate all configurations for every run_config
+        # Store them in the all_configs dictionary
+        all_configs = {}
         for rc in yc['run_configs']:
-            maxlen = np.max([len(v) if isinstance(v, list)
-                             else 1 for k, v in yc['configs'][rc].items()])
-            for k, v in yc['configs'][rc].items():
-                if isinstance(v, list):
-                    assert maxlen % len(
-                        v) == 0, 'Size of {} must be a multiple of {}'.format(len(v), maxlen)
-                    yc['configs'][rc][k] = v * int(maxlen / len(v))
-                else:
-                    yc['configs'][rc][k] = [v] * maxlen
-            total_sims += np.sum(yc['configs'][rc]['repeats'])
+            rc_d = yc['configs'][rc]
+            comb_type = rc_d.get('combinations', ['unique'])[0]
+            temp_configs = []
+            if comb_type == 'unique':
+                temp_configs = common.get_unique_combinations(rc_d)
+            elif comb_type == 'cross':
+                temp_configs = common.get_permutations(rc_d)
+            else:
+                print(f'[Warning] Incorrect combination style for {tc}:{rc}')
+            total_sims += len(temp_configs)
+            all_configs[rc] = temp_configs.copy()
 
         print("Total runs: ", total_sims)
+
         current_sim = 0
+        for config_name, configs in all_configs.items():
+            keys = list(yc['configs'][config_name])
+            for config in configs:
+                config = dict([keys, config])
+                job_name = job_name_form.format(**config)
+                #     config[keys.index('memory')],
+                #     config[keys.index('gzip')],
+                #     config[keys.index('chunk')],
+                #     config[keys.index('wpn')],
+                #     config[keys.index('nodes')],
+                #     config[keys.index('mpi')]
+                # )
 
-        for analysis in yc['run_configs']:
-            # For the extract script
-
-            config = yc['configs'][analysis]
-            # make the size of all lists equal
-
-            ps = config['particles']
-            bs = config['bunches']
-            ss = config['slices']
-            ts = config['turns']
-            ws = config['workers']
-            oss = config['omp']
-            rs = config['reduce']
-            exes = config['exe']
-            times = config['time']
-            # partitions = config['partition']
-            mtws = config.get('mtw', ['0']*len(ps))
-            ms = config.get('monitor', ['0']*len(ps))
-            seeds = config.get('seed', ['0']*len(ps))
-            approxs = config['approx']
-            timings = config['timing']
-            mpis = config['mpi']
-            logs = config['log']
-            lbs = config['loadbalance']
-            repeats = config['repeats']
-            tps = config['withtp']
-            precs = config['precision']
-            artdels = config['artificialdelay']
-            gpus = config['gpu']
-            partitions = config.get('partition', ['default']*len(ps))
-            cores_per_cpu_lst = config.get(
-                'cores_per_cpu', [common.cores_per_cpu]*len(ps))
-            nodes = config.get('nodes', [0]*len(ps))
-
-            for (N, p, b, s, t, r, w, o, time,
-                 mtw, m, seed, exe, approx,
-                 timing, mpi, log, lb,  # lba,
-                 tp, prec, reps, artdel, gpu,
-                 partition, cores_per_cpu) in zip(nodes, ps, bs, ss, ts, rs, ws,
-                                                  oss, times, mtws, ms, seeds,
-                                                  exes, approxs, timings, mpis,
-                                                  logs, lbs, tps, precs,
-                                                  repeats, artdels, gpus, partitions,
-                                                  cores_per_cpu_lst):
-                if N == 0:
-                    N = int(max(np.ceil(w * o / cores_per_cpu), 1))
-
-                job_name = job_name_form.format(p, b, s, t, w, o, N,
-                                                r, mtw, seed, approx, mpi,
-                                                lb, m, tp, prec, artdel, gpu,
-                                                partition)
-
-                for i in range(reps):
+                for i in range(config['repeats']):
                     timestr = datetime.now().strftime('%d%b%y.%H-%M-%S')
                     timestr = timestr + '-' + str(random.randint(0, 100))
-                    output = result_dir.format(
-                        tc, analysis, job_name, timestr, 'output.txt')
-                    error = result_dir.format(
-                        tc, analysis, job_name, timestr, 'error.txt')
-                    condor_log = result_dir.format(
-                        tc, analysis, job_name, timestr, 'log.txt')
-                    monitorfile = result_dir.format(
-                        tc, analysis, job_name, timestr, 'monitor')
-                    log_dir = result_dir.format(
-                        tc, analysis, job_name, timestr, 'log')
-                    report_dir = result_dir.format(
-                        tc, analysis, job_name, timestr, 'report')
-                    for d in [log_dir, report_dir]:
-                        if not os.path.exists(d):
-                            os.makedirs(d)
+                    output = result_dir.format(tc=tc, config_name=config_name, jobname=job_name,
+                                               timestr=timestr, fname='output.txt')
+                    error = result_dir.format(tc=tc, config_name=config_name, jobname=job_name,
+                                              timestr=timestr, fname='error.txt')
+                    if not os.path.exists(os.path.dirname(output)):
+                        os.makedirs(os.path.dirname(output))
+                    # tc, config_name, job_name, timestr, 'output.txt')
+                    # error = result_dir.format(
+                    #     tc, config_name, job_name, timestr, 'error.txt')
+                    # condor_log = result_dir.format(
+                    #     tc, config_name, job_name, timestr, 'log.txt')
+                    # monitorfile = result_dir.format(
+                    #     tc, config_name, job_name, timestr, 'monitor')
+                    # log_dir = result_dir.format(
+                    #     tc, config_name, job_name, timestr, 'log')
+                    # report_dir = result_dir.format(
+                    #     tc, config_name, job_name, timestr, 'report')
+                    # for d in [log_dir, report_dir]:
+                    #     if not os.path.exists(d):
+                    #         os.makedirs(d)
 
-                    os.environ['OMP_NUM_THREADS'] = str(o)
+                    os.environ['OMP_NUM_THREADS'] = str(config['omp'])
 
                     analysis_file = open(os.path.join(top_result_dir, tc,
-                                                      analysis, '.analysis'),
-                                         'a')
+                                                      config_name, '.analysis'), 'a')
 
-                    exe_args = [
-                        common.python, os.path.join(common.exe_home, exe),
-                        '--particles='+str(int(p)),
-                        '--slices='+str(s),
-                        '--bunches='+str(int(b)),
-                        '--turns='+str(t),
-                        '--omp='+str(o),
-                        '--seed='+str(seed),
-                        '--time='+str(timing), '--timedir='+report_dir,
-                        '--monitor='+str(m), '--monitorfile='+monitorfile,
-                        '--reduce='+str(r),
-                        '--mtw='+str(mtw),
-                        '--precision='+str(prec),
-                        '--approx='+str(approx),
-                        '--loadbalance='+lb,
-                        '--withtp='+str(tp),
-                        '--log='+str(log), '--logdir='+log_dir,
-                        '--artificialdelay='+str(artdel),
-                        '--gpu='+str(gpu)]
+                    exe_args = [common.python]
+                    # os.path.join(common.exe_home, exe)]
+                    for argname, argvalue in config.items():
+                        if argname == 'exe':
+                            exe_args.append(os.path.join(common.exe_home, argvalue))
+                        elif argname in ['memory', 'gzip', 'chunk', 'wpn']:
+                            exe_args.append(f'--{argname}={argvalue}')
 
-                    if args.environment == 'local':
-                        batch_args = [common.mpirun, '-n', str(w),
-                                      '-bind-to', 'socket']
-                        all_args = batch_args + exe_args
-                    elif args.environment == 'evolve':
-                        batch_args = [
-                            common.evolve['submit'],
-                            common.evolve['nodes'], str(N),
-                            common.evolve['workers'], str(w),
-                            common.evolve['tasks_per_node'], str(
-                                int(np.ceil(w/N))),
-                            common.evolve['cores'], str(o),  # str(o),
-                            common.evolve['partition'], str(partition),
-                            common.evolve['time'], str(time),
-                            common.evolve['output'], output,
-                            common.evolve['error'], error,
-                            common.evolve['jobname'], tc + '-' + analysis + job_name.split('/')[0] + '-' + str(i)]
-                        batch_args += common.evolve['default_args']
-                        batch_args += [common.evolve['script'],
-                                       common.evolve['run']]
-                        all_args = batch_args + \
-                            [common.mpirun, '-n', str(w)] + exe_args
-
-                    elif args.environment in ['slurm', 'cloud']:
+                    if args.environment in ['slurm', 'cloud']:
                         batch_args = [
                             common.slurm['submit'],
-                            common.slurm['nodes'], str(N),
-                            common.slurm['workers'], str(w),
-                            common.slurm['tasks_per_node'], str(
-                                int(np.ceil(w/N))),
-                            common.slurm['cores'], str(o),  # str(o),
-                            common.slurm['time'], str(time),
+                            common.slurm['nodes'], str(config['nodes']),
+                            # common.slurm['workers'], str(w),
+                            common.slurm['tasks_per_node'], str(config['wpn']),
+                            common.slurm['cores'], str(config['omp']),  # str(o),
+                            common.slurm['time'], str(config['time']),
                             common.slurm['output'], output,
                             common.slurm['error'], error,
-                            common.slurm['jobname'], tc + '-' + analysis + job_name.split('/')[0] + '-' + str(i),
-                            common.slurm['partition'], str(partition)]
+                            common.slurm['jobname'], tc + '-' + config_name + job_name.split('/')[0] + '-' + str(i),
+                            common.slurm['partition'], str(config['partition'])]
                         batch_args += common.slurm['default_args']
                         batch_args += [common.slurm['script'],
                                        common.slurm['run']]
                         all_args = batch_args + exe_args
-
-                    elif args.environment == 'condor':
-                        arg_str = '"{} -n {} '.format(common.mpirun, str(w))
-                        arg_str = arg_str + ' '.join(exe_args) + '"'
-                        # arg_str+= ' --version "'
-                        batch_args = [
-                            common.condor['submit'],
-                            common.condor['executable'],
-                            common.condor['arguments']+arg_str,
-                            common.condor['cores']+str(o),
-                            common.condor['gpus']+str(gpu),
-                            '-append', common.condor['time']+str(time),
-                            common.condor['output']+output,
-                            common.condor['error']+error,
-                            common.condor['log']+condor_log,
-                            common.condor['jobname'], tc + '-' + analysis + job_name.split('/')[0] + '-' + str(i)]
-                        batch_args += common.condor['default_args']
-                        batch_args += ['-file', common.condor['script']]
-                        all_args = batch_args
+                    else:
+                        print('[Error] Wrong environment!')
+                        sys.exit(-1)
 
                     print(job_name, timestr)
                     print(job_name, timestr, "\n", file=analysis_file)
@@ -242,9 +158,7 @@ if __name__ == '__main__':
                                     stderr=open(error, 'w'),
                                     env=os.environ.copy())
 
-                    # sleep(5)
                     current_sim += 1
-                    print("%lf %% is completed" % (100.0 * current_sim
-                                                   / total_sims))
+                    print(f"{current_sim}/{total_sims} ({100.0 * current_sim / total_sims}) has been completed")
 
                     analysis_file.close()
