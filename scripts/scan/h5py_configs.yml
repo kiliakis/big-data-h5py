@@ -16,7 +16,7 @@ slurm:
             'mpi': ['mvapich2'],
             'omp': [1],
 #            'cores_per_cpu': [20],
-            'partition': ['inf-short'],
+            'partition': ['photon'],
             'time': [30],
             'repeats': [1],
             'combinations': ['cross'] # or unique
