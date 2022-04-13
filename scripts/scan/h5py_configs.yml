@@ -17,7 +17,7 @@ slurm:
             'omp': [1],
 #            'cores_per_cpu': [20],
             'partition': ['inf-short'],
-            'time': [120],
+            'time': [30],
             'repeats': [1],
             'combinations': ['cross'] # or unique
         },
