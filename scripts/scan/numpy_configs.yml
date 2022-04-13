@@ -25,4 +25,5 @@ slurm:
             'time': [30],
             'repeats': [1],
             'combinations': ['cross'] # or unique
-        },
+        }
+    }

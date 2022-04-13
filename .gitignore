@@ -6,7 +6,8 @@
 *.project
 *.cubin
 *.pydevproject
-
+results/
+*.hdf5
 .settings
 .pytest_cache
 __pycache__/

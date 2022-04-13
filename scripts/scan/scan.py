@@ -35,11 +35,11 @@ if __name__ == '__main__':
     # os.environ['HOME'] = common.home
     # os.environ['FFTWDIR'] = os.environ.get('FFTWDIR', '$HOME/install')
     # os.environ['HOME'] =
-    for tc in args.testcases.split(','):
+    for tc in args.testcases:
         yc = yaml.load(open(this_directory + '/{}_configs.yml'.format(tc), 'r'),
                        Loader=yaml.FullLoader)[args.environment]
 
-        result_dir = top_result_dir + '/{exe}/{config_name}/{job_name}/{timestr}/{fname}'
+        result_dir = top_result_dir + '/{tc}/{config_name}/{job_name}/{timestr}/{fname}'
 
         total_sims = 0
         # Calculate all configurations for every run_config
@@ -64,7 +64,7 @@ if __name__ == '__main__':
         for config_name, configs in all_configs.items():
             keys = list(yc['configs'][config_name])
             for config in configs:
-                config = dict([keys, config])
+                config = dict(zip(keys, config))
                 job_name = job_name_form.format(**config)
                 #     config[keys.index('memory')],
                 #     config[keys.index('gzip')],
@@ -74,12 +74,12 @@ if __name__ == '__main__':
                 #     config[keys.index('mpi')]
                 # )
 
-                for i in range(config['repeats']):
+                for i in range(int(config['repeats'])):
                     timestr = datetime.now().strftime('%d%b%y.%H-%M-%S')
                     timestr = timestr + '-' + str(random.randint(0, 100))
-                    output = result_dir.format(tc=tc, config_name=config_name, jobname=job_name,
+                    output = result_dir.format(tc=tc, config_name=config_name, job_name=job_name,
                                                timestr=timestr, fname='output.txt')
-                    error = result_dir.format(tc=tc, config_name=config_name, jobname=job_name,
+                    error = result_dir.format(tc=tc, config_name=config_name, job_name=job_name,
                                               timestr=timestr, fname='error.txt')
                     if not os.path.exists(os.path.dirname(output)):
                         os.makedirs(os.path.dirname(output))
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                     for argname, argvalue in config.items():
                         if argname == 'exe':
                             exe_args.append(os.path.join(common.exe_home, argvalue))
-                        elif argname in ['memory', 'gzip', 'chunk', 'wpn']:
+                        elif argname in ['memory', 'gzip', 'chunk']:
                             exe_args.append(f'--{argname}={argvalue}')
 
                     if args.environment in ['slurm', 'cloud']:

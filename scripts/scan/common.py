@@ -13,10 +13,10 @@ python = 'python'
 cores_per_cpu = 20
 
 def get_permutations(my_dict):
-    keys, values = zip(*my_dict.items())
-    permutations = [dict(zip(keys, v)) for v in itertools.product(*values)]
-    # all_names = sorted(my_dict)
-    # permutations = itertools.product(*(my_dict[Name] for Name in all_names))
+    #keys, values = zip(*my_dict.items())
+    #permutations = [dict(zip(keys, v)) for v in itertools.product(*values)]
+    all_names = list(my_dict.keys())
+    permutations = list(itertools.product(*(my_dict[Name] for Name in all_names)))
     return permutations
 
 
