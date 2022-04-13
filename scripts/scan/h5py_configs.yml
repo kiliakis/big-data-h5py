@@ -7,17 +7,18 @@ slurm:
     configs: {
 
         'scan1': {
-            'exe': ['mpi-h5py.py'],
-            'memory': [100, 200, 500, 1000],
-            'gzip': [0, 4, 9],
-            'chunk': [1000000],
-            'wpn': [1, 2, 5, 10, 20],
-            'nodes': [1, 2, 4],
-            'mpi': ['mvapich2'],
-            'omp': [1],
-#            'cores_per_cpu': [20],
-            'partition': ['photon'],
-            'time': [30],
-            'repeats': [1],
-            'combinations': ['cross'] # or unique
-        },
+            'exe': [ 'mpi-h5py.py' ],
+            'memory': [ 100, 200, 500, 1000 ],
+            'gzip': [ 0, 4, 9 ],
+            'chunk': [ 1000000 ],
+            'wpn': [ 1, 2, 5, 10, 20 ],
+            'nodes': [ 1, 2, 4 ],
+            'mpi': [ 'mvapich2' ],
+            'omp': [ 1 ],
+          #            'cores_per_cpu': [20],
+            'partition': [ 'photon' ],
+            'time': [ 30 ],
+            'repeats': [ 1 ],
+            'combinations': [ 'cross' ] # or unique
+        }
+    }
