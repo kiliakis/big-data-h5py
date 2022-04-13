@@ -42,7 +42,7 @@ def use_numpy(num_elems: int):
     return dt, dE, idx
 
 
-# @profile
+# @profile(stream=open(f'memory-profile-{comm.rank}.txt','w'))
 def generate_scatter_data(comm, total_elems, args):
     if comm.rank == 0:
         dt, dE, idx = use_numpy(total_elems)
@@ -57,9 +57,9 @@ def generate_scatter_data(comm, total_elems, args):
         dE = scatter(comm, dE)
         idx = scatter(comm, idx)
 
-    print(f'[{comm.rank}] Len: {len(dt)}, Avg: {np.mean(dt)}')
-    print(f'[{comm.rank}] Len: {len(dE)}, Avg: {np.mean(dE)}')
-    print(f'[{comm.rank}] Len: {len(idx)}, Avg: {np.mean(idx)}')
+    print(f'[{comm.rank}] dt Len: {len(dt)}, Avg: {np.mean(dt)}')
+    print(f'[{comm.rank}] dE Len: {len(dE)}, Avg: {np.mean(dE)}')
+    print(f'[{comm.rank}] id Len: {len(idx)}, Avg: {np.mean(idx)}')
 
 
 # Press the green button in the gutter to run the script.
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     print('[{}]@{}: Hello World!'.format(comm.rank, MPI.Get_processor_name()))
 
     # Everything goes in a function, for easier reporting
-    mem_usage = memory_usage((generate_scatter_data, (comm, total_elems, args), {}), interval=0.1)
+    mem_usage = memory_usage((generate_scatter_data, (comm, total_elems, args), {}))
     # generate_scatter_data(comm, total_elems, args)
 
     print(f'[{comm.rank}] Memory footprint: {np.max(mem_usage) - np.min(mem_usage)} MB')
