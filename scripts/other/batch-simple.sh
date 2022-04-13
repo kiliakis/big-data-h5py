@@ -12,9 +12,9 @@
 
 # source $HOME/.bashrc
 
-module purge
+#module purge
 module load mpi/mvapich2/2.3
-module load compiler/gcc7
+#module load compiler/gcc8
 
 export PYTHONPATH="$HOME/install/:$HOME/git/pymodules/:$HOME/scripts/:$PYTHONPATH"
 export PATH="$HOME/install/miniconda3-mvapich2.3/bin:$PATH"

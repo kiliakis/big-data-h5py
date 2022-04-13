@@ -62,7 +62,7 @@ evolve = {
 
 # SLURM flags
 slurm = {
-    'script': os.path.join(home, 'scripts/other/hpcbatch-simple.sh'),
+    'script': os.path.join(home, 'scripts/other/batch-simple.sh'),
     'submit': 'sbatch',
     'run': 'srun',
     'nodes': '--nodes',

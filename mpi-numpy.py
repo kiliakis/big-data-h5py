@@ -32,7 +32,7 @@ parser.add_argument('-c', '--chunk', type=int, default=CHUNK_SIZE,
 
 
 # @profile
-def use_numpy(num_elems: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def use_numpy(num_elems: int):
     dt = np.arange(num_elems).astype(dtype=np.float64)
     dE = np.arange(num_elems).astype(dtype=np.float64)
     idx = np.arange(num_elems, dtype=np.int32)
