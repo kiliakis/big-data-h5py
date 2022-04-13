@@ -30,6 +30,8 @@ parser.add_argument('-gzip', '--gzip', type=int, default=COMPRESSION,
 parser.add_argument('-c', '--chunk', type=int, default=CHUNK_SIZE,
                     help='H5PY chunk size. Default: 1e6')
 
+parser.add_argument('-o', '--outdir', type=str, default='./',
+                    help='Directory to write output.')
 
 # @profile
 def use_numpy(num_elems: int):

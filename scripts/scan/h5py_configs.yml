@@ -2,14 +2,14 @@
 slurm:
 
     run_configs:
-        - 'scan1'
+        - 'gzip0'
 
     configs: {
 
         'scan1': {
             'exe': [ 'mpi-h5py.py' ],
             'memory': [ 100, 200, 500, 1000 ],
-            'gzip': [ 0, 4, 9 ],
+            'gzip': [ 0 ],
             'chunk': [ 1000000 ],
             'wpn': [ 1, 2, 5, 10, 20 ],
             'nodes': [ 1, 2, 4 ],

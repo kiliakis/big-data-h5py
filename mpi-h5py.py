@@ -11,6 +11,7 @@ import argparse
 from mpi4py import MPI
 from parutils import pprint, h5_scatter
 from memory_profiler import memory_usage
+import os
 # from memory_profiler import profile
 
 # max memory to use, in bytes
@@ -30,10 +31,13 @@ parser.add_argument('-gzip', '--gzip', type=int, default=COMPRESSION,
 parser.add_argument('-c', '--chunk', type=int, default=CHUNK_SIZE,
                     help='H5PY chunk size. Default: 1e6')
 
+parser.add_argument('-o', '--outdir', type=str, default='./',
+                    help='Directory to write output.')
+
 
 # @profile
-def use_h5py(num_elems: int, chunk_size: int = 1000000, compression: int = 4):
-    fname = f'test-elems{total_elems}-chunk{chunk_size}-compression{compression}.hdf5'
+def use_h5py(num_elems: int, chunk_size: int = 1000000, compression: int = 4, outdir: str = './'):
+    fname = f'{outdir}/test-elems{total_elems}-chunk{chunk_size}-compression{compression}.hdf5'
     with h5py.File(fname, 'w') as file:
         dt_dset = file.create_dataset("dt", num_elems, dtype=np.float64, chunks=chunk_size, compression='gzip',
                                       compression_opts=compression)
@@ -52,12 +56,12 @@ def use_h5py(num_elems: int, chunk_size: int = 1000000, compression: int = 4):
         # print(f'dt original avg: {np.mean(dt_dset[:])}')
         # print(f'dE original avg: {np.mean(dE_dset[:])}')
         # print(f'id original avg: {np.mean(id_dset[:])}')
-    return fname, dt_dset, dE_dset, id_dset
+    return fname
 
 # @profile
 def generate_scatter_data(comm, total_elems, args):
     if comm.rank == 0:
-        fname, dt_h5, dE_h5, id_h5 = use_h5py(total_elems, args.chunk, args.gzip)
+        fname = use_h5py(total_elems, args.chunk, args.gzip, args.outdir)
         dt = h5_scatter(comm, 'dt', fname=fname)
         dE = h5_scatter(comm, 'dE', fname=fname)
         idx = h5_scatter(comm, 'id', fname=fname)
@@ -70,6 +74,10 @@ def generate_scatter_data(comm, total_elems, args):
     print(f'[{comm.rank}] Len: {len(dt)}, Avg: {np.mean(dt)}')
     print(f'[{comm.rank}] Len: {len(dE)}, Avg: {np.mean(dE)}')
     print(f'[{comm.rank}] Len: {len(idx)}, Avg: {np.mean(idx)}')
+    # Delete fname
+    if comm.rank == 0:
+        if os.path.isfile(fname):
+            os.remove(fname)
 
 
 # Press the green button in the gutter to run the script.

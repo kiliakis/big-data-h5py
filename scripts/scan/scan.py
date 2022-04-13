@@ -110,7 +110,7 @@ if __name__ == '__main__':
                             exe_args.append(os.path.join(common.exe_home, argvalue))
                         elif argname in ['memory', 'gzip', 'chunk']:
                             exe_args.append(f'--{argname}={argvalue}')
-
+                    exe_args.append(f'--outdir={os.path.dirname(output)}')
                     if args.environment in ['slurm', 'cloud']:
                         batch_args = [
                             common.slurm['submit'],
