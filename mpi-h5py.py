@@ -39,11 +39,11 @@ parser.add_argument('-o', '--outdir', type=str, default='./',
 def use_h5py(num_elems, chunk_size = 1000000, compression = 4, outdir = './'):
     fname = f'{outdir}/test-elems{total_elems}-chunk{chunk_size}-compression{compression}.hdf5'
     with h5py.File(fname, 'w') as file:
-        dt_dset = file.create_dataset("dt", num_elems, dtype=np.float64, chunks=chunk_size, compression='gzip',
+        dt_dset = file.create_dataset("dt", np.int64(num_elems), dtype=np.float64, chunks=chunk_size, compression='gzip',
                                       compression_opts=compression)
-        dE_dset = file.create_dataset("dE", num_elems, dtype=np.float64, chunks=chunk_size, compression='gzip',
+        dE_dset = file.create_dataset("dE", np.int64(num_elems), dtype=np.float64, chunks=chunk_size, compression='gzip',
                                       compression_opts=compression)
-        id_dset = file.create_dataset("id", num_elems, dtype=np.int64, chunks=chunk_size, compression='gzip',
+        id_dset = file.create_dataset("id", np.int64(num_elems), dtype=np.int64, chunks=chunk_size, compression='gzip',
                                       compression_opts=compression)
 
         idx = 0
