@@ -34,10 +34,10 @@ parser.add_argument('-o', '--outdir', type=str, default='./',
                     help='Directory to write output.')
 
 # @profile
-def use_numpy(num_elems: int):
-    dt = np.arange(num_elems).astype(dtype=np.float64)
-    dE = np.arange(num_elems).astype(dtype=np.float64)
-    idx = np.arange(num_elems, dtype=np.int32)
+def use_numpy(num_elems):
+    dt = np.arange(np.int64(num_elems)).astype(dtype=np.float64)
+    dE = np.arange(np.int64(num_elems)).astype(dtype=np.float64)
+    idx = np.arange(np.int64(num_elems), dtype=np.int64)
     # print(f'dt original avg: {np.mean(dt[:])}')
     # print(f'dE original avg: {np.mean(dE[:])}')
     # print(f'id original avg: {np.mean(idx[:])}')
@@ -54,7 +54,7 @@ def generate_scatter_data(comm, total_elems, args):
     else:
         dt = np.array([], dtype=np.float64)
         dE = np.array([], dtype=np.float64)
-        idx = np.array([], dtype=np.int32)
+        idx = np.array([], dtype=np.int64)
         dt = scatter(comm, dt)
         dE = scatter(comm, dE)
         idx = scatter(comm, idx)
@@ -75,11 +75,11 @@ if __name__ == '__main__':
     swap = psutil.swap_memory()
     pprint('Swap memory ' + str(swap))
     # basically we need dt, de and id
-    # assuming float64 and int32
-    elem_size = (2 * 8 + 4)
+    # assuming float64 and int64
+    elem_size = (2 * 8 + 8)
     pprint(f'Max points that can be generated (assuming 0 OS memory): {memory.total // elem_size / 1e6} M')
     pprint(f'Max points that cab be generated (with current utilization): {memory.available // elem_size / 1e6} M')
-    num_elems = int(args.memory // elem_size)
+    num_elems = args.memory // elem_size
     pprint(f'Points per worker according to mem limitation ({args.memory // 1e6}MB): {num_elems / 1e6} M')
 
     comm = MPI.COMM_WORLD

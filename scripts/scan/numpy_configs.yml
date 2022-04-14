@@ -8,7 +8,7 @@ slurm:
 
         'scan1': {
             'exe': ['mpi-numpy.py'],
-            'memory': [100, 200, 500, 1000],
+            'memory': [ 500, 1000],
 #            'memory': [100],
             'gzip': [0],
             'chunk': [0],
@@ -20,8 +20,8 @@ slurm:
             'omp': [1],
 #            'cores_per_cpu': [20],
             'partition': ['photon'],
-            'time': [30],
-            'repeats': [1],
+            'time': [60],
+            'repeats': [2],
             'combinations': ['cross'] # or unique
         }
     }
