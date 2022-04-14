@@ -96,7 +96,6 @@ if __name__ == '__main__':
     mem_usage = memory_usage((generate_scatter_data, (comm, total_elems, args), {}))
     # generate_scatter_data(comm, total_elems, args)
 
-    print(f'[{comm.rank}] Memory footprint: {np.max(mem_usage) - np.min(mem_usage)} MB')
-
-
+    # print(f'[{comm.rank}] Memory footprint: {np.max(mem_usage) - np.min(mem_usage)} MB')
+    print(f'[{comm.rank}] Memory footprint: {np.max(mem_usage)} MB')
 
