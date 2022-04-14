@@ -8,8 +8,8 @@ slurm:
 
         'scan1': {
             'exe': ['mpi-numpy.py'],
-#            'memory': [ 500, 1000],
-            'memory': [100, 200],
+            'memory': [ 500, 1000],
+#            'memory': [100, 200],
             'gzip': [0],
             'chunk': [0],
             'wpn': [1, 2, 5, 10, 20],
