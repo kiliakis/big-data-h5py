@@ -39,20 +39,20 @@ parser.add_argument('-o', '--outdir', type=str, default='./',
 def use_h5py(num_elems, chunk_size = 1000000, compression = 4, outdir = './'):
     fname = f'{outdir}/test-elems{total_elems}-chunk{chunk_size}-compression{compression}.hdf5'
     with h5py.File(fname, 'w') as file:
-        dt_dset = file.create_dataset("dt", (np.int64(num_elems),), dtype=np.float64, chunks=(chunk_size,), compression='gzip',
+        dt_dset = file.create_dataset("dt", (np.int(num_elems),), dtype=np.float64, chunks=(chunk_size,), compression='gzip',
                                       compression_opts=compression)
-        dE_dset = file.create_dataset("dE", (np.int64(num_elems),), dtype=np.float64, chunks=(chunk_size,), compression='gzip',
+        dE_dset = file.create_dataset("dE", (np.int(num_elems),), dtype=np.float64, chunks=(chunk_size,), compression='gzip',
                                       compression_opts=compression)
-        id_dset = file.create_dataset("id", (np.int64(num_elems),), dtype=np.int64, chunks=(chunk_size,), compression='gzip',
+        id_dset = file.create_dataset("id", (np.int(num_elems),), dtype=np.int64, chunks=(chunk_size,), compression='gzip',
                                       compression_opts=compression)
 
-        idx = 0
+        idx = np.int(0)
         while idx < num_elems:
-            write_elems = min(chunk_size, num_elems - idx)
+            write_elems = np.int(min(chunk_size, num_elems - idx))
             dt_dset[idx:idx + write_elems] = np.arange(idx, idx + write_elems).astype(dtype=np.float64)
             dE_dset[idx:idx + write_elems] = np.arange(idx, idx + write_elems).astype(dtype=np.float64)
             id_dset[idx:idx + write_elems] = np.arange(idx, idx + write_elems).astype(dtype=np.int64)
-            idx += chunk_size
+            idx += np.int(chunk_size)
         # print(f'dt original avg: {np.mean(dt_dset[:])}')
         # print(f'dE original avg: {np.mean(dE_dset[:])}')
         # print(f'id original avg: {np.mean(id_dset[:])}')
