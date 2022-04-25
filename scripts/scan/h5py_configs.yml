@@ -8,14 +8,14 @@ slurm:
 
         'scan1': {
             'exe': [ 'mpi-h5py.py' ],
-#            'memory': [ 100, 200, 500, 1000 ],
-            'memory': [ 100 ],
+            'memory': [ 100, 200, 500, 1000 ],
+#            'memory': [ 100 ],
             'gzip': [ 0 ],
             'chunk': [ 1000000 ],
 #            'wpn': [ 1, 2, 5, 10, 20],
-            'wpn': [ 1, 2],
-#            'nodes': [ 1, 2, 4 ],
-            'nodes': [ 1],
+            'wpn': [ 1, 2, 5, 10],
+            'nodes': [ 1, 2],
+#            'nodes': [ 1],
 
             'mpi': [ 'mvapich2' ],
             'omp': [ 1 ],
