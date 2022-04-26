@@ -24,7 +24,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     indirs = glob.glob(args.indir)
     regexp1 = re.compile(r'\[(\d+)\].*:(.*)MB')
-    header = ['exe', 'mem', 'gzip', 'chunk', 'N', 'wpn', 'mpi', 'ftprint0', 'ftprintn_std']
+    header = ['exe', 'mem', 'gzip', 'chunk', 'N', 'wpn', 'mpi', 'maxMem0', 'maxMemN', 'maxMemN_std']
     for indir in indirs:
         print(f'Working on {indir} directory')
         print('\n-------- Generating reports -------\n')
